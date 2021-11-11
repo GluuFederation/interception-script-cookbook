@@ -1,0 +1,145 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	template="/passwordless/login-template.xhtml">
+
+	<f:metadata>
+		<f:viewAction action="#{authenticator.prepareAuthenticationForStep}"
+			if="#{not identity.loggedIn}" />
+	</f:metadata>
+
+	<ui:define name="pageTitle">#{msgs['pwdless.pageTitle']}</ui:define>
+
+	<ui:define name="maincontent">
+		<section class="pa4 shadow-4 bg-blank gray mw-20r cust-section">
+			<h2 class="f3 dark-blue2">#{msgs['casa.login.panel_title']}</h2>
+			<h:messages class="list dark-red tc pv2 ph0 ma0 f6" />
+
+			<div id="panel_list" class="pt4 w5 dn">
+				<span class="dark-blue2">#{msgs['pwdless.choose']}</span>
+				<ul id="list" class="list-group f7-cust pv3 pointer">
+				</ul>
+
+				<div align="center" class="pb3">
+					<a href="javascript:hidelist()" class="f7-cust green hover-green">#{msgs['pwdless.other']}</a>
+				</div>
+			</div>
+
+			<h:form id="loginForm" class="pt3 w5 dn">
+
+				<div class="relative mt4 pb2">
+					<h:inputText id="loginButton" value="Login"
+						styleClass="focused-text w-100 pb1 dark-gray" />
+				</div>
+				<div class="relative mt4 pb2">
+					<h:inputText id="username" value="#{credentials.username}"
+						styleClass="focused-text w-100 pb1 dark-gray" />
+					<label class="focused-label-big">#{msgs['pwdless.username']}</label>
+				</div>
+				<div class="mt5 flex justify-end">
+					<input id="cancel"
+						class="f7-cust bw0 br1 ph4 pv2 bg-orange2 white hover-bg-orange2 hover-white btn cust-misc-button mr2 dn"
+						onclick="showlist()" type="button" value="#{msgs['casa.cancel']}" />
+
+					<h:commandButton
+						class="f7-cust bw0 br1 ph4 pv2 bg-bsgreen-success white hover-bsgreen-success hover-white btn cust-primary-button"
+						id="loginButton" value="#{msgs['login.login']}"
+						action="#{authenticator.authenticate}" />
+				</div>
+
+			</h:form>
+		</section>
+		<script>
+			//<![CDATA[
+			function getAllUrlParams(url) {
+
+				// get query string from url (optional) or window
+				var queryString = url ? url.split('?')[1]
+						: window.location.search.slice(1);
+
+				// we'll store the parameters here
+				var obj = {};
+
+				// if query string exists
+				if (queryString) {
+
+					// stuff after # is not part of query string, so get rid of it
+					queryString = queryString.split('#')[0];
+
+					// split our query string into its component parts
+					var arr = queryString.split('&');
+
+					for (var i = 0; i < arr.length; i++) {
+						// separate the keys and the values
+						var a = arr[i].split('=');
+
+						// set parameter name and value (use 'true' if empty)
+						var paramName = a[0];
+						var paramValue = typeof (a[1]) === 'undefined' ? true
+								: a[1];
+
+						// (optional) keep case consistent
+						paramName = paramName.toLowerCase();
+						if (typeof paramValue === 'string')
+							paramValue = paramValue.toLowerCase();
+
+						// if the paramName ends with square brackets, e.g. colors[] or colors[2]
+						if (paramName.match(/\[(\d+)?\]$/)) {
+
+							// create key if it doesn't exist
+							var key = paramName.replace(/\[(\d+)?\]/, '');
+							if (!obj[key])
+								obj[key] = [];
+
+							// if it's an indexed array e.g. colors[2]
+							if (paramName.match(/\[\d+\]$/)) {
+								// get the index value and add the entry at the appropriate position
+								var index = /\[(\d+)\]/.exec(paramName)[1];
+								obj[key][index] = paramValue;
+							} else {
+								// otherwise add the value to the end of the array
+								obj[key].push(paramValue);
+							}
+						} else {
+							// we're dealing with a string
+							if (!obj[paramName]) {
+								// if it doesn't exist, create property
+								obj[paramName] = paramValue;
+							} else if (obj[paramName]
+									&& typeof obj[paramName] === 'string') {
+								// if property does exist and it's a string, convert it to an array
+								obj[paramName] = [ obj[paramName] ];
+								obj[paramName].push(paramValue);
+							} else {
+								// otherwise add the property
+								obj[paramName].push(paramValue);
+							}
+						}
+					}
+				}
+
+				return obj;
+			}
+
+			//alert(getAllUrlParams().login_hint);
+
+			if (typeof getAllUrlParams().login_hint !== "undefined") {
+				document.getElementById('loginForm:username').value = getAllUrlParams().login_hint;
+				document.getElementById('loginForm').submit();
+
+			}
+
+			//      ]]>
+		</script>
+		<!-- Sample markup for list:
+		<li class="list-group-item hover-bg-light-gray gray hover-dark-gray pt2" onClick="javascript:choose('0')">
+			<div class="flex justify-between">
+				<span>Item 1</span>
+				<span>Your Item 1</span>
+			</div>
+		</li>
+		-->
+	</ui:define>
+
+</ui:composition>
